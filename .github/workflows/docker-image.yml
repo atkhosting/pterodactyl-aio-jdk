@@ -41,6 +41,7 @@ jobs:
           - aio-21
           - aio-24
           - aio-25
+          - aio-26
     steps:
       - name: Checkout
         uses: actions/checkout@v3
