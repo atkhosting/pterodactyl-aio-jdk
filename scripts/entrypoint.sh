@@ -30,8 +30,6 @@ export TZ
 INTERNAL_IP=$(ip route get 1 | awk '{print $(NF-2);exit}')
 export INTERNAL_IP
 
-
-
 # Set JAVA_HOME based on JDK_VENDOR (default: temurin)
 JDK_VENDOR=${JDK_VENDOR:-temurin}
 export JAVA_HOME="/opt/java/${JDK_VENDOR}"
@@ -46,21 +44,16 @@ if [ ! -d "${JAVA_HOME}" ]; then
     exit 1
 fi
 
-
-
-
-
 export PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Switch to the container's working directory
 cd /home/container || exit 1
 
 # Some color shit
-
 LIGHT_BLUE='\033[1;34m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-LIGHT_RED='\033[1;31m'
+LIGHT_RED='\033[1;31m' 
 RESET_COLOR='\033[0m'
 CYAN='\033[0;36m'
 
@@ -70,8 +63,7 @@ java -version 2>&1 | cat
 echo ""
 
 
-
-
+# initial lines for implementing Skullians's stuff(imma copy all of em) 
 
 
 # Convert all of the "{{VARIABLE}}" parts of the command into the expected shell
@@ -84,24 +76,32 @@ TRACE_ENABLED=$(echo "$PARSED" | sed -n 's/.*-Danalyse=\([^ ]*\).*/\1/p')
 # Check if malloc implementations are explicitly enabled (disabled by default)
 JEMALLOC_ENABLED=$(echo "$PARSED" | sed -n 's/.*-Djemalloc=true.*/true/p')
 MIMALLOC_ENABLED=$(echo "$PARSED" | sed -n 's/.*-Dmimalloc=true.*/true/p')
+TCMALLOC_ENABLED=$(echo "$PARSED" | sed -n 's/.*-Dtcmalloc=true.*/true/p')
 
-# Error handling: prevent both malloc implementations from being enabled
-if [ "$JEMALLOC_ENABLED" = "true" ] && [ "$MIMALLOC_ENABLED" = "true" ]; then
-    printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}${LIGHT_RED}ERROR: Both jemalloc and mimalloc are enabled!${RESET_COLOR}\n"
-    printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}You can only enable one at a time!\n"
+# Error handling: only one malloc implementation can be enabled at a time
+ALLOCATORS_ENABLED=0
+[ "$JEMALLOC_ENABLED" = "true" ] && ALLOCATORS_ENABLED=$((ALLOCATORS_ENABLED + 1))
+[ "$MIMALLOC_ENABLED" = "true" ] && ALLOCATORS_ENABLED=$((ALLOCATORS_ENABLED + 1))
+[ "$TCMALLOC_ENABLED" = "true" ] && ALLOCATORS_ENABLED=$((ALLOCATORS_ENABLED + 1))
+
+if [ "$ALLOCATORS_ENABLED" -gt 1 ]; then
+    printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}${LIGHT_RED}ERROR: Multiple malloc allocators are enabled!${RESET_COLOR}\n"
+    printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}Enable only one of: -Djemalloc=true, -Dmimalloc=true, -Dtcmalloc=true\n"
     exit 1
 fi
-
 # load the jemalloc
 if [ "$JEMALLOC_ENABLED" = "true" ]; then
     printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}Enabling jemalloc!\n"
-    export LD_PRELOAD="/usr/local/lib/libjemalloc.so"
+    export LD_PRELOAD="/usr/local/lib/libjemalloc.so" # maybe the profiling capability is baked in this one lib, and not with the other one
 fi
 
 # failsafe in case dumps folder does not exist
 mkdir -p dumps
 
-# jemalloc heap dump processing
+
+# im gonna pretend that i under stand ts
+
+# haha we hate nohup
 if [ "$DUMPS_ENABLED" = "true" ]; then
     export MALLOC_CONF="prof:true,lg_prof_interval:31,lg_prof_sample:17,prof_prefix:/home/container/dumps/jeprof,background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:0,narenas:1,tcache_max:1024,abort_conf:true"
 
@@ -133,7 +133,6 @@ if [ "$DUMPS_ENABLED" = "true" ]; then
     ) &
 fi
 
-# thread analysis with keyword matching
 if [ "$TRACE_ENABLED" = "true" ]; then
     # Extract the keyword from the PARSED variable
     KEYWORD=$(echo "$PARSED" | sed -n 's/.*-Dkeyword=\([^ ]*\).*/\1/p')
@@ -176,14 +175,27 @@ if [ "$TRACE_ENABLED" = "true" ]; then
     ) &
 fi
 
-# load the mimalloc
+
+# all ts for mimalloc is something
 if [ "$MIMALLOC_ENABLED" = "true" ]; then
     printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}Enabling mimalloc!\n"
     export LD_PRELOAD="/usr/local/lib/libmimalloc.so"
 fi
 
+# tcmalloc (down from skullian's)
 
+if [ "$TCMALLOC_ENABLED" = "true" ]; then
+    TCMALLOC_LIB=$(ldconfig -p 2>/dev/null | awk '/libtcmalloc_minimal\.so/{print $NF; exit}')
+    if [ -z "$TCMALLOC_LIB" ]; then
+        printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}${LIGHT_RED}ERROR: tcmalloc requested but library was not found!${RESET_COLOR}\n"
+        exit 1
+    fi
 
+    printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}Enabling tcmalloc!\n"
+    export LD_PRELOAD="$TCMALLOC_LIB"
+fi
+
+# malloc i've found randomly on the internet
 
 
 
@@ -192,5 +204,6 @@ fi
 # Display the command we're running in the output, and then execute it with the env
 # from the container itself.
 printf "${GREEN}container@game-panel-command~ ${RESET_COLOR}%s\n" "$PARSED"
+
 # shellcheck disable=SC2086
 exec env ${PARSED}
