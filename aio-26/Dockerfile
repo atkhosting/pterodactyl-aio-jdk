@@ -52,26 +52,26 @@ RUN git clone https://github.com/microsoft/mimalloc.git . && \
     make install
 
 # get JDK source
-# Note: Not all vendors have Java 25 yet
-FROM eclipse-temurin:25-jdk AS temurin
-FROM azul/zulu-openjdk:25 AS zulu
-FROM bellsoft/liberica-openjdk-debian:25 AS liberica
-FROM container-registry.oracle.com/graalvm/jdk:25 AS graalvm
-FROM ghcr.io/graalvm/jdk-community:25 AS graalvm-ce
-FROM amazoncorretto:25 AS corretto
+# Note: Not all vendors have Java 26 yet
+FROM eclipse-temurin:26-jdk AS temurin
+FROM azul/zulu-openjdk:26 AS zulu
+FROM bellsoft/liberica-openjdk-debian:26 AS liberica
+FROM container-registry.oracle.com/graalvm/jdk:26 AS graalvm
+FROM ghcr.io/graalvm/jdk-community:26 AS graalvm-ce
+FROM amazoncorretto:26 AS corretto
 # FROM ibm-semeru-runtimes:open-25-jdk AS semeru
-FROM container-registry.oracle.com/graalvm/native-image:25 AS graalvm-native
-# FROM alibabadragonwell/dragonwell:25 AS dragonwell
+FROM container-registry.oracle.com/graalvm/native-image:26 AS graalvm-native
+# FROM alibabadragonwell/dragonwell:26 AS dragonwell
 
 # ---- Builder stage: assemble and strip all JDKs in one place ----
 FROM debian:stable-slim AS jdk-builder
 
 # Copy all JDKs into the builder
 
-COPY --from=graalvm         /usr/lib64/graalvm/graalvm-java25              /opt/java/graalvm
-COPY --from=graalvm-ce      /usr/lib64/graalvm/graalvm-community-java25    /opt/java/graalvm-ce
-COPY --from=graalvm-native  /usr/lib64/graalvm/graalvm-java25              /opt/java/graalvm-native
-COPY --from=corretto        /usr/lib/jvm/java-25-amazon-corretto           /opt/java/corretto
+COPY --from=graalvm         /usr/lib64/graalvm/graalvm-java26              /opt/java/graalvm
+COPY --from=graalvm-ce      /usr/lib64/graalvm/graalvm-community-java26    /opt/java/graalvm-ce
+COPY --from=graalvm-native  /usr/lib64/graalvm/graalvm-java26              /opt/java/graalvm-native
+COPY --from=corretto        /usr/lib/jvm/java-26-amazon-corretto           /opt/java/corretto
 COPY --from=temurin         /opt/java/openjdk                              /opt/java/temurin
 # COPY --from=semeru          /opt/java/openjdk                              /opt/java/semeru
 # COPY --from=dragonwell      /opt/java/openjdk                              /opt/java/dragonwell
