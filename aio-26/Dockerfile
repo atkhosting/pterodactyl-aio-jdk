@@ -56,11 +56,11 @@ RUN git clone https://github.com/microsoft/mimalloc.git . && \
 FROM eclipse-temurin:26-jdk AS temurin
 FROM azul/zulu-openjdk:26 AS zulu
 FROM bellsoft/liberica-openjdk-debian:26 AS liberica
-FROM container-registry.oracle.com/graalvm/jdk:26 AS graalvm
+# FROM container-registry.oracle.com/graalvm/jdk:26 AS graalvm
 # FROM ghcr.io/graalvm/jdk-community:26 AS graalvm-ce
 FROM amazoncorretto:26 AS corretto
 # FROM ibm-semeru-runtimes:open-25-jdk AS semeru
-FROM container-registry.oracle.com/graalvm/native-image:26 AS graalvm-native
+# FROM container-registry.oracle.com/graalvm/native-image:26 AS graalvm-native
 # FROM alibabadragonwell/dragonwell:26 AS dragonwell
 
 # ---- Builder stage: assemble and strip all JDKs in one place ----
@@ -68,9 +68,9 @@ FROM debian:stable-slim AS jdk-builder
 
 # Copy all JDKs into the builder
 
-COPY --from=graalvm         /usr/lib64/graalvm/graalvm-java26              /opt/java/graalvm
+# COPY --from=graalvm         /usr/lib64/graalvm/graalvm-java26              /opt/java/graalvm
 # COPY --from=graalvm-ce      /usr/lib64/graalvm/graalvm-community-java26    /opt/java/graalvm-ce
-COPY --from=graalvm-native  /usr/lib64/graalvm/graalvm-java26              /opt/java/graalvm-native
+# COPY --from=graalvm-native  /usr/lib64/graalvm/graalvm-java26              /opt/java/graalvm-native
 COPY --from=corretto        /usr/lib/jvm/java-26-amazon-corretto           /opt/java/corretto
 COPY --from=temurin         /opt/java/openjdk                              /opt/java/temurin
 # COPY --from=semeru          /opt/java/openjdk                              /opt/java/semeru
