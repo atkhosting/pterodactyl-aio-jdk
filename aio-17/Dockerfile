@@ -63,6 +63,8 @@ FROM bellsoft/liberica-openjdk-debian:17 AS liberica
 # ---- Builder stage: assemble and strip all JDKs in one place ----
 FROM debian:stable-slim AS jdk-builder
 
+RUN mkdir -p /opt/java
+
 # Copy all JDKs into the builder
 COPY --from=temurin         /opt/java/openjdk                              /opt/java/temurin
 COPY --from=graalvm         /usr/lib64/graalvm/graalvm-java17              /opt/java/graalvm

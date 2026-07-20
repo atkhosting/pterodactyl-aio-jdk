@@ -33,6 +33,8 @@ FROM bellsoft/liberica-openjdk-debian:13 AS liberica
 
 FROM debian:stable-slim AS jdk-builder
 
+RUN mkdir -p /opt/java
+
 COPY --from=zulu      /usr/lib/jvm  /tmp/zulu-jvm
 COPY --from=liberica  /usr/lib/jvm  /tmp/liberica-jvm
 

@@ -4,7 +4,7 @@
 
 # Pterodactyl Multi-JDK Images
 
-A collection of Docker images for the Pterodactyl Panel, providing multiple JDK vendors in a single container. You can switch between vendors at runtime using the `JDK_VENDOR` environment variable.
+A collection of Docker images for the Pterodactyl Panel, providing multiple JDK vendors in a single container. You can switch between vendors at runtime using the `JDK_VENDOR` environment variable. x86 only for now.
 
 ## Available Images
 

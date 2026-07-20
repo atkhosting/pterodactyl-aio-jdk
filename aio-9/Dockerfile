@@ -1,6 +1,6 @@
 # ----------------------------------
 # Pterodactyl Core Dockerfile
-# Environment: Java 9 (Multi-vendor)
+# Environment: Java 9 (Single-vendor)
 # Minimum Panel Version: 1.7.0
 # ----------------------------------
 
@@ -51,14 +51,16 @@ RUN git clone https://github.com/microsoft/mimalloc.git . && \
 
 # get JDK source
 FROM azul/zulu-openjdk:9 AS zulu
-FROM bellsoft/liberica-openjdk-debian:9 AS liberica
+
+# bellsoft/liberica-openjdk-debian:9 is arm-only, so it cannot be used for amd64 builds.
 
 # ---- Builder stage: assemble and strip all JDKs in one place ----
 FROM debian:stable-slim AS jdk-builder
 
+RUN mkdir -p /opt/java
+
 # Copy all JDKs into the builder
 COPY --from=zulu      /usr/lib/jvm  /tmp/zulu-jvm
-COPY --from=liberica  /usr/lib/jvm  /tmp/liberica-jvm
 
 # Single RUN: move variable-named dirs, then strip all JDKs
 RUN set -eux && \
@@ -69,21 +71,10 @@ RUN set -eux && \
         echo "ERROR: No Zulu JDK directory found!" && exit 1; \
     fi && \
     rm -rf /tmp/zulu-jvm && \
-    \
-    LIBERICA_DIR=$(find /tmp/liberica-jvm -mindepth 1 -maxdepth 1 -type d | head -n1) && \
-    if [ -n "$LIBERICA_DIR" ]; then \
-        mv "$LIBERICA_DIR" /opt/java/liberica; \
-    else \
-        echo "ERROR: No Liberica JDK directory found!" && exit 1; \
+    if [ ! -f "/opt/java/zulu/bin/java" ]; then \
+        echo "ERROR: /opt/java/zulu/bin/java not found!" && exit 1; \
     fi && \
-    rm -rf /tmp/liberica-jvm && \
-    \
-    for jdk in zulu liberica; do \
-        if [ ! -f "/opt/java/$jdk/bin/java" ]; then \
-            echo "ERROR: /opt/java/$jdk/bin/java not found!" && exit 1; \
-        fi; \
-        echo "OK /opt/java/$jdk/bin/java"; \
-    done && \
+    echo "OK /opt/java/zulu/bin/java" && \
     \
     for dir in man demo sample legal jmods include; do \
         find /opt/java -type d -name "$dir" -exec rm -rf {} + 2>/dev/null || true; \
@@ -100,7 +91,7 @@ FROM debian:stable-slim
 ARG TARGETARCH
 
 LABEL       author="Aretzera" maintainer="agroup168@proton.me"
-LABEL org.opencontainers.image.description="Java 9 Multi-vendor Image"
+LABEL org.opencontainers.image.description="Java 9 Single-vendor Image"
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
