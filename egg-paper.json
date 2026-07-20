@@ -5,7 +5,7 @@
         "update_url": null
     },
     "exported_at": "2026-01-05T18:02:31+00:00",
-    "name": "Paper with AIO Java JDK Docker Images",
+    "name": "Paper with AIO JDK Docker Images",
     "author": "agroup168@proton.me",
     "description": "High performance Spigot fork that aims to fix gameplay and mechanics inconsistencies. With you-know-what additions",
     "features": [
