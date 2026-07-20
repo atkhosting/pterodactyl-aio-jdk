@@ -10,16 +10,23 @@ A collection of Docker images for the Pterodactyl Panel, providing multiple JDK 
 
 | Java Version | Image Tag | Included JDK Vendors |
 |--------------|-----------|---------------------|
+| 7 | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-7` | Zulu |
 | **8** | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-8` | Temurin, **GraalVM (only `ce` variant)**, Zulu, Corretto, Liberica |
+| 9 | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-9` | Zulu, Liberica |
+| 10 | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-10` | Zulu, Liberica |
 | **11** | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-11` | Temurin, **GraalVM (only `ce` variant)**, Zulu, Corretto, Liberica |
-| **16** | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-16` | Temurin, Zulu, Corretto, Liberica |
+| 12 | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-12` | Zulu, Liberica |
+| 13 | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-13` | Zulu, Liberica |
+| 14 | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-14` | Zulu, Liberica |
+| 15 | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-15` | Zulu, Liberica, Corretto |
+| 16 | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-16` | Temurin, Zulu, Corretto, Liberica |
 | **17** | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-17` | Temurin, **GraalVM (all 3 variants)**, Zulu, Corretto, Liberica |
-| **18** | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-18` | Temurin, Zulu, Corretto, Liberica |
-| **19** | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-19` | Temurin, Zulu, Corretto, Liberica |
+| 18 | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-18` | Temurin, Zulu, Corretto, Liberica |
+| 19 | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-19` | Temurin, Zulu, Corretto, Liberica |
 | **21** | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-21` | Temurin, **GraalVM (all 3 variants)**, Zulu, Corretto, Liberica |
-| **24** | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-24` | Temurin, **GraalVM (all 3 variants)**, Zulu, Corretto, Liberica |
+| 24 | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-24` | Temurin, **GraalVM (all 3 variants)**, Zulu, Corretto, Liberica |
 | **25** | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-25` | Temurin, **GraalVM (all 3 variants)**, Zulu, Corretto, Liberica |
-| **26** | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-26` | Temurin, Zulu, Corretto, Liberica |
+| 26 | `ghcr.io/alexan75541/pterodactyl-aio-jdk:aio-26` | Temurin, Zulu, Corretto, Liberica |
 
 
 
@@ -84,8 +91,15 @@ Along with the list of Java version if you want:
 ```
 "docker_images": {
         "Java 8": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-8",
+        "Java 7": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-7",
         "Java 11": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-11",
+        "Java 9": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-9",
+        "Java 10": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-10",
         "Java 16": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-16",
+        "Java 12": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-12",
+        "Java 13": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-13",
+        "Java 14": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-14",
+        "Java 15": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-15",
         "Java 17": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-17",
         "Java 18": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-18",
         "Java 19": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-19",
