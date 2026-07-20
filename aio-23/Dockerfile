@@ -1,13 +1,13 @@
 # ----------------------------------
 # Pterodactyl Core Dockerfile
-# Environment: Java 20 (Multi-vendor + GraalVM)
+# Environment: Java 23 (Multi-vendor + GraalVM)
 # Minimum Panel Version: 1.7.0
 # ----------------------------------
 
+# deprived from aio-22
+
 # ---- Malloc implementations builder stage ----
 FROM debian:stable-slim AS malloc-builder
-
-# deprived from aio-17
 
 # Install build dependencies for both jemalloc and mimalloc
 RUN apt-get update && \
@@ -52,25 +52,25 @@ RUN git clone https://github.com/microsoft/mimalloc.git . && \
     make install
 
 # get JDK source
-FROM eclipse-temurin:20-jdk AS temurin
-FROM container-registry.oracle.com/graalvm/jdk:20 AS graalvm
-FROM ghcr.io/graalvm/jdk-community:20 AS graalvm-ce
-FROM container-registry.oracle.com/graalvm/native-image:20 AS graalvm-native
-FROM azul/zulu-openjdk:20 AS zulu
-FROM amazoncorretto:20 AS corretto
-# FROM ibm-semeru-runtimes:open-20-jdk AS semeru
-FROM bellsoft/liberica-openjdk-debian:20 AS liberica
-# FROM alibabadragonwell/dragonwell:20 AS dragonwell
+FROM eclipse-temurin:23-jdk AS temurin
+FROM container-registry.oracle.com/graalvm/jdk:23 AS graalvm
+FROM ghcr.io/graalvm/jdk-community:23 AS graalvm-ce
+FROM container-registry.oracle.com/graalvm/native-image:23 AS graalvm-native
+FROM azul/zulu-openjdk:23 AS zulu
+FROM amazoncorretto:23 AS corretto
+# FROM ibm-semeru-runtimes:open-23-jdk AS semeru
+FROM bellsoft/liberica-openjdk-debian:23 AS liberica
+# FROM alibabadragonwell/dragonwell:23 AS dragonwell
 
 # ---- Builder stage: assemble and strip all JDKs in one place ----
 FROM debian:stable-slim AS jdk-builder
 
 # Copy all JDKs into the builder
 COPY --from=temurin         /opt/java/openjdk                              /opt/java/temurin
-COPY --from=graalvm         /usr/lib64/graalvm/graalvm-java20              /opt/java/graalvm
-COPY --from=graalvm-ce      /usr/lib64/graalvm/graalvm-community-java20    /opt/java/graalvm-ce
-COPY --from=graalvm-native  /usr/lib64/graalvm/graalvm-java20              /opt/java/graalvm-native
-COPY --from=corretto        /usr/lib/jvm/java-20-amazon-corretto           /opt/java/corretto
+COPY --from=graalvm         /usr/lib64/graalvm/graalvm-java23              /opt/java/graalvm
+COPY --from=graalvm-ce      /usr/lib64/graalvm/graalvm-community-java23    /opt/java/graalvm-ce
+COPY --from=graalvm-native  /usr/lib64/graalvm/graalvm-java23              /opt/java/graalvm-native
+COPY --from=corretto        /usr/lib/jvm/java-23-amazon-corretto           /opt/java/corretto
 # COPY --from=semeru          /opt/java/openjdk                              /opt/java/semeru
 # COPY --from=dragonwell      /opt/java/openjdk                              /opt/java/dragonwell
 
@@ -127,7 +127,7 @@ FROM debian:stable-slim
 ARG TARGETARCH
 
 LABEL       author="Aretzera" maintainer="agroup168@proton.me"
-LABEL org.opencontainers.image.description="Java 20 Multi-vendor Image with GraalVM"
+LABEL org.opencontainers.image.description="Java 23 Multi-vendor Image with GraalVM"
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'

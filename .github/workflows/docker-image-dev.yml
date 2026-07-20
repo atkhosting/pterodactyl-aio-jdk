@@ -33,7 +33,7 @@ jobs:
          # - aio-25
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
 
       - name: Free disk space
         run: |
@@ -57,18 +57,18 @@ jobs:
           df -h /
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v4.2.0
         
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4.2.0
         with:
                 buildkitd-flags: --debug
 
 
       - name: Login to GHCR
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3.1.0
+        uses: docker/login-action@v4.4.0
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -76,7 +76,7 @@ jobs:
 
       - name: Docker meta
         id: meta_aio_jdk
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v6.2.0
         with:
           # list of Docker images to use as base name for tags
           images: |
@@ -88,7 +88,7 @@ jobs:
             
       - name: Build and push
         id: docker_build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7.3.0
         with:
           context: .
           file: ./${{ matrix.tag }}/Dockerfile

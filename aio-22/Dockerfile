@@ -127,7 +127,7 @@ FROM debian:stable-slim
 ARG TARGETARCH
 
 LABEL       author="Aretzera" maintainer="agroup168@proton.me"
-LABEL org.opencontainers.image.description="Java 17 Multi-vendor Image with GraalVM"
+LABEL org.opencontainers.image.description="Java 22 Multi-vendor Image with GraalVM"
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
