@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright (c) 2021 Matthew Penner
+# Copyright (c) 2026 Matthew Penner & Aretzera
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,19 +34,21 @@ export INTERNAL_IP
 JDK_VENDOR=${JDK_VENDOR:-temurin}
 export JAVA_HOME="/opt/java/${JDK_VENDOR}"
 
-# Translate the allocator selector into the existing startup flags.
+# Translate the allocator selector into a startup placeholder that is inserted
+# before the -jar argument.
 MALLOC_IMPL=${MALLOC_IMPL:-none}
+MALLOC_OPTS=""
 case "$MALLOC_IMPL" in
     none|"")
         ;;
     jemalloc)
-        STARTUP="${STARTUP} -Djemalloc=true"
+        MALLOC_OPTS="-Djemalloc=true"
         ;;
     mimalloc)
-        STARTUP="${STARTUP} -Dmimalloc=true"
+        MALLOC_OPTS="-Dmimalloc=true"
         ;;
     tcmalloc)
-        STARTUP="${STARTUP} -Dtcmalloc=true"
+        MALLOC_OPTS="-Dtcmalloc=true"
         ;;
     *)
         echo "ERROR: Unknown malloc implementation '${MALLOC_IMPL}'."
@@ -54,6 +56,7 @@ case "$MALLOC_IMPL" in
         exit 1
         ;;
 esac
+export MALLOC_OPTS
 
 # Check if the selected JDK vendor exists
 if [ ! -d "${JAVA_HOME}" ]; then

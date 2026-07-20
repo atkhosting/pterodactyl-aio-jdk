@@ -33,7 +33,7 @@
         "Java 26": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-26"
     },
     "file_denylist": [],
-    "startup": "java -Xms128M -Xmx{{SERVER_MEMORY}}M {{FLAGS}} -Dterminal.jline=false -Dterminal.ansi=true -jar {{SERVER_JARFILE}}",
+    "startup": "java -Xms128M -Xmx{{SERVER_MEMORY}}M {{FLAGS}} -Dterminal.jline=false -Dterminal.ansi=true {{MALLOC_OPTS}} -jar {{SERVER_JARFILE}}",
     "config": {
         "files": "{\r\n    \"server.properties\": {\r\n        \"parser\": \"properties\",\r\n        \"find\": {\r\n            \"server-ip\": \"0.0.0.0\",\r\n            \"server-port\": \"{{server.build.default.port}}\",\r\n            \"query.port\": \"{{server.build.default.port}}\"\r\n        }\r\n    }\r\n}",
         "startup": "{\r\n    \"done\": \")! For help, type \"\r\n}",
@@ -90,7 +90,7 @@
         },
         {
             "name": "JDK Vendor",
-            "description": "The JDK vendor to use for running the server.\r\n\r\nOptions: `temurin`, `graalvm`, `graalvm-native`, `graalvm-ce`, `zulu`, `liberica`, `corretto`",
+            "description": "The JDK vendor to use for running the server. Note that some vendors may not support all versions of Java. If you are unsure, use Temurin.",
             "env_variable": "JDK_VENDOR",
             "default_value": "temurin",
             "user_viewable": true,
@@ -100,7 +100,7 @@
         },
         {
             "name": "Malloc Implementation",
-            "description": "Select which allocator to preload at startup.\r\n\r\nOptions: `none`, `jemalloc`, `mimalloc`, `tcmalloc`. Leave at none to use the default allocator.",
+            "description": "Select which allocator to preload at startup.",
             "env_variable": "MALLOC_IMPL",
             "default_value": "none",
             "user_viewable": true,
