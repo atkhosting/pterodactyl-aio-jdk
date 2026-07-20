@@ -59,7 +59,7 @@ FROM bellsoft/liberica-openjdk-debian:26 AS liberica
 # FROM container-registry.oracle.com/graalvm/jdk:26 AS graalvm
 # FROM ghcr.io/graalvm/jdk-community:26 AS graalvm-ce
 FROM amazoncorretto:26 AS corretto
-# FROM ibm-semeru-runtimes:open-25-jdk AS semeru
+# FROM ibm-semeru-runtimes:open-26-jdk AS semeru
 # FROM container-registry.oracle.com/graalvm/native-image:26 AS graalvm-native
 # FROM alibabadragonwell/dragonwell:26 AS dragonwell
 
