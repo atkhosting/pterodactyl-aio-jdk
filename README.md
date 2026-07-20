@@ -123,14 +123,19 @@ All images include pre-compiled `jemalloc` and `mimalloc` libraries(long ahh bui
 
 ### Enabling a `*malloc`
 
-You can enable them by using one of these flags(behind the `java ` start point):
+You can enable them by setting the `MALLOC_IMPL` variable in the egg or by using one of these flags(behind the `java ` start point):
 ```
 -Djemalloc=true
 
        or 
 
 -Dmimalloc=true
+
+       or
+
+-Dtcmalloc=true
 ```
+`MALLOC_IMPL=none` leaves the default allocator in place. Only one allocator can be active at a time, and `-Ddump=true` requires `jemalloc`.
 ### The rest of the profiling procedure for `jemalloc` are in [this part](https://github.com/Skullians/native-leak-profiling/blob/main/README.md#usage) of his repo, as well as other knowledges. Be sure to check it out if you're interested.
 
 ## License and Contributing

@@ -34,6 +34,27 @@ export INTERNAL_IP
 JDK_VENDOR=${JDK_VENDOR:-temurin}
 export JAVA_HOME="/opt/java/${JDK_VENDOR}"
 
+# Translate the allocator selector into the existing startup flags.
+MALLOC_IMPL=${MALLOC_IMPL:-none}
+case "$MALLOC_IMPL" in
+    none|"")
+        ;;
+    jemalloc)
+        STARTUP="${STARTUP} -Djemalloc=true"
+        ;;
+    mimalloc)
+        STARTUP="${STARTUP} -Dmimalloc=true"
+        ;;
+    tcmalloc)
+        STARTUP="${STARTUP} -Dtcmalloc=true"
+        ;;
+    *)
+        echo "ERROR: Unknown malloc implementation '${MALLOC_IMPL}'."
+        echo "Allowed values: none, jemalloc, mimalloc, tcmalloc"
+        exit 1
+        ;;
+esac
+
 # Check if the selected JDK vendor exists
 if [ ! -d "${JAVA_HOME}" ]; then
     echo "ERROR: JDK vendor '${JDK_VENDOR}' is not available in this image."
@@ -103,6 +124,12 @@ mkdir -p dumps
 
 # haha we hate nohup
 if [ "$DUMPS_ENABLED" = "true" ]; then
+    if [ "$JEMALLOC_ENABLED" != "true" ]; then
+        printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}${LIGHT_RED}ERROR: -Ddump=true requires jemalloc.${RESET_COLOR}\n"
+        printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}Select jemalloc with MALLOC_IMPL or remove the dump flag.\n"
+        exit 1
+    fi
+
     export MALLOC_CONF="prof:true,lg_prof_interval:31,lg_prof_sample:17,prof_prefix:/home/container/dumps/jeprof,background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:0,narenas:1,tcache_max:1024,abort_conf:true"
 
     (

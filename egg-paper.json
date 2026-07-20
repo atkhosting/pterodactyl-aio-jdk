@@ -99,6 +99,16 @@
             "field_type": "text"
         },
         {
+            "name": "Malloc Implementation",
+            "description": "Select which allocator to preload at startup.\r\n\r\nOptions: `none`, `jemalloc`, `mimalloc`, `tcmalloc`. Leave at none to use the default allocator.",
+            "env_variable": "MALLOC_IMPL",
+            "default_value": "none",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|in:none,jemalloc,mimalloc,tcmalloc",
+            "field_type": "text"
+        },
+        {
             "name": "Flags",
             "description": "JVM flags to use when starting the server.",
             "env_variable": "FLAGS",
