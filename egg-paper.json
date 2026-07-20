@@ -1,13 +1,13 @@
 {
-    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO but who cares",
     "meta": {
         "version": "PTDL_v2",
         "update_url": null
     },
     "exported_at": "2026-01-05T18:02:31+00:00",
-    "name": "Paper with AIO Java 21 Support",
+    "name": "Paper with AIO Java JDK Docker Images",
     "author": "agroup168@proton.me",
-    "description": "High performance Spigot fork that aims to fix gameplay and mechanics inconsistencies.",
+    "description": "High performance Spigot fork that aims to fix gameplay and mechanics inconsistencies. With you-know-what additions",
     "features": [
         "eula",
         "java_version",
@@ -16,9 +16,14 @@
     "docker_images": {
         "Java 8": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-8",
         "Java 11": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-11",
+        "Java 16": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-16",
         "Java 17": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-17",
+        "Java 18": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-18",
+        "Java 19": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-19",
         "Java 21": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-21",
-        "Java 25": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-25"
+        "Java 24": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-24",
+        "Java 25": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-25",
+        "Java 26": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-26"
     },
     "file_denylist": [],
     "startup": "java -Xms128M -Xmx{{SERVER_MEMORY}}M {{FLAGS}} -Dterminal.jline=false -Dterminal.ansi=true -jar {{SERVER_JARFILE}}",
