@@ -37,7 +37,7 @@ RUN mkdir -p /opt /tmp/jprof /tmp/nmt /tmp/pmap /diagnostic
 WORKDIR /opt/jemalloc
 # We manually compile jemalloc here, as installing through apt-get (libjemalloc2) does not enable the profiling options we need in Jemalloc.
 # If you look below, we use the --enable-prof flag in the autogen.sh script to enable profiling.
-RUN git clone https://github.com/facebook/jemalloc.git . && \
+RUN git clone https://github.com/jemalloc/jemalloc.git . && \
     ./autogen.sh --enable-prof && \
     make dist && \
     make && \
