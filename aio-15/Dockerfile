@@ -38,7 +38,7 @@ LABEL       author="Aretzera" maintainer="agroup168@proton.me"
 LABEL org.opencontainers.image.description="Java 15 Multi-vendor Image"
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
-RUN apt-get update -y && apt-get install -y --no-install-recommends curl ca-certificates openssl git tar sqlite3 fontconfig libfreetype6 libstdc++6 lsof build-essential tzdata iproute2 locales libnuma1 numactl graphviz perl procps && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8 && apt-get clean && rm -rf /var/lib/apt/lists/* && useradd -m -d /home/container container
+RUN apt-get update -y && apt-get install -y --no-install-recommends curl ca-certificates openssl git tar sqlite3 fontconfig libfreetype6 libstdc++6 lsof build-essential tzdata iproute2 locales libnuma1 numactl graphviz perl procps google-perftools && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8 && apt-get clean && rm -rf /var/lib/apt/lists/* && useradd -m -d /home/container container
 COPY --from=jdk-builder /opt/java /opt/java
 COPY --from=malloc-builder /usr/local/lib/libjemalloc.so /usr/local/lib/libjemalloc.so
 COPY --from=malloc-builder /usr/local/lib/libmimalloc.so /usr/local/lib/libmimalloc.so
