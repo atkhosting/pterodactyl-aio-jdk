@@ -80,7 +80,7 @@ RUN set -eux && \
     done && \
     \
     find /opt/java -type f \( -name "src.zip" -o -name "*.debuginfo" -o -name "*.diz" -o -name "*.map" \) -delete 2>/dev/null || true && \
-    for jdk in /opt/java/*/lib/security/cacerts /opt/java/*/jre/lib/security/cacerts /opt/java/*/conf/security/cacerts; do if [ -L "$jdk" ] && [ ! -e "$jdk" ]; then echo "WARN: removing dangling cacerts symlink: $jdk"; rm -f "$jdk"; fi; done && \
+    REF_CACERTS=$(find /opt/java -name "cacerts" -type f ! -type l 2>/dev/null | head -n1) && if [ -n "$REF_CACERTS" ]; then for jdk_dir in /opt/java/*; do for target in "$jdk_dir/lib/security/cacerts" "$jdk_dir/jre/lib/security/cacerts" "$jdk_dir/conf/security/cacerts"; do if [ -L "$target" ] || [ ! -s "$target" ]; then rm -f "$target" && cp "$REF_CACERTS" "$target"; fi; done; done; fi && \
     echo "=== Per-JDK sizes ===" && du -sh /opt/java/* && \
     echo "=== Total ===" && du -sh /opt/java
 
@@ -135,9 +135,8 @@ RUN update-ca-certificates && \
                 if [ -d "$JDK_DIR/$sub" ]; then \
                     CACERTS_TARGET="$JDK_DIR/$sub/cacerts" && \
                     if [ ! -s "$CACERTS_TARGET" ] || [ -L "$CACERTS_TARGET" ]; then \
-                        rm -f "$CACERTS_TARGET" && \
-                        if [ -f /etc/ssl/certs/java/cacerts ]; then \
-                            cp /etc/ssl/certs/java/cacerts "$CACERTS_TARGET" 2>/dev/null || ln -sf /etc/ssl/certs/java/cacerts "$CACERTS_TARGET"; \
+                        if [ -s /etc/ssl/certs/java/cacerts ]; then \
+                            rm -f "$CACERTS_TARGET" && cp /etc/ssl/certs/java/cacerts "$CACERTS_TARGET" 2>/dev/null || true; \
                         fi; \
                     fi; \
                 fi; \
