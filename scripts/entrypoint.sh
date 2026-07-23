@@ -34,21 +34,13 @@ export INTERNAL_IP
 JDK_VENDOR=${JDK_VENDOR:-temurin}
 export JAVA_HOME="/opt/java/${JDK_VENDOR}"
 
-# Translate the allocator selector into a startup placeholder that is inserted
-# before the -jar argument.
+# Select the memory allocator via MALLOC_IMPL (injected by Pterodactyl from the egg variable).
+# We read it directly here — no startup-command placeholder needed.
 MALLOC_IMPL=${MALLOC_IMPL:-none}
-MALLOC_OPTS=""
 case "$MALLOC_IMPL" in
     none|"")
         ;;
-    jemalloc)
-        MALLOC_OPTS="-Djemalloc=true"
-        ;;
-    mimalloc)
-        MALLOC_OPTS="-Dmimalloc=true"
-        ;;
-    tcmalloc)
-        MALLOC_OPTS="-Dtcmalloc=true"
+    jemalloc|mimalloc|tcmalloc)
         ;;
     *)
         echo "ERROR: Unknown malloc implementation '${MALLOC_IMPL}'."
@@ -56,7 +48,6 @@ case "$MALLOC_IMPL" in
         exit 1
         ;;
 esac
-export MALLOC_OPTS
 
 # Check if the selected JDK vendor exists
 if [ ! -d "${JAVA_HOME}" ]; then
@@ -151,27 +142,33 @@ PARSED=$(echo "${STARTUP}" | sed -e 's/{{/${/g' -e 's/}}/}/g' | eval echo "$(cat
 DUMPS_ENABLED=$(echo "$PARSED" | sed -n 's/.*-Ddump=\([^ ]*\).*/\1/p')
 TRACE_ENABLED=$(echo "$PARSED" | sed -n 's/.*-Danalyse=\([^ ]*\).*/\1/p')
 
-# Check if malloc implementations are explicitly enabled (disabled by default)
-JEMALLOC_ENABLED=$(echo "$PARSED" | sed -n 's/.*-Djemalloc=true.*/true/p')
-MIMALLOC_ENABLED=$(echo "$PARSED" | sed -n 's/.*-Dmimalloc=true.*/true/p')
-TCMALLOC_ENABLED=$(echo "$PARSED" | sed -n 's/.*-Dtcmalloc=true.*/true/p')
-
-# Error handling: only one malloc implementation can be enabled at a time
-ALLOCATORS_ENABLED=0
-[ "$JEMALLOC_ENABLED" = "true" ] && ALLOCATORS_ENABLED=$((ALLOCATORS_ENABLED + 1))
-[ "$MIMALLOC_ENABLED" = "true" ] && ALLOCATORS_ENABLED=$((ALLOCATORS_ENABLED + 1))
-[ "$TCMALLOC_ENABLED" = "true" ] && ALLOCATORS_ENABLED=$((ALLOCATORS_ENABLED + 1))
-
-if [ "$ALLOCATORS_ENABLED" -gt 1 ]; then
-    printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}${LIGHT_RED}ERROR: Multiple malloc allocators are enabled!${RESET_COLOR}\n"
-    printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}Enable only one of: -Djemalloc=true, -Dmimalloc=true, -Dtcmalloc=true\n"
-    exit 1
-fi
-# load the jemalloc
-if [ "$JEMALLOC_ENABLED" = "true" ]; then
-    printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}Enabling jemalloc!\n"
-    export LD_PRELOAD="/usr/local/lib/libjemalloc.so" # maybe the profiling capability is baked in this one lib, and not with the other one
-fi
+# Apply the malloc implementation chosen via the MALLOC_IMPL egg variable.
+# MALLOC_IMPL is injected directly by Pterodactyl — no startup placeholder needed.
+JEMALLOC_ENABLED=false
+MIMALLOC_ENABLED=false
+TCMALLOC_ENABLED=false
+case "$MALLOC_IMPL" in
+    jemalloc)
+        JEMALLOC_ENABLED=true
+        printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}Enabling jemalloc!\n"
+        export LD_PRELOAD="/usr/local/lib/libjemalloc.so"
+        ;;
+    mimalloc)
+        MIMALLOC_ENABLED=true
+        printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}Enabling mimalloc!\n"
+        export LD_PRELOAD="/usr/local/lib/libmimalloc.so"
+        ;;
+    tcmalloc)
+        TCMALLOC_ENABLED=true
+        TCMALLOC_LIB=$(ldconfig -p 2>/dev/null | awk '/libtcmalloc_minimal\.so/{print $NF; exit}')
+        if [ -z "$TCMALLOC_LIB" ]; then
+            printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}${LIGHT_RED}ERROR: tcmalloc requested but library was not found!${RESET_COLOR}\n"
+            exit 1
+        fi
+        printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}Enabling tcmalloc!\n"
+        export LD_PRELOAD="$TCMALLOC_LIB"
+        ;;
+esac
 
 # failsafe in case dumps folder does not exist
 mkdir -p dumps
@@ -260,24 +257,9 @@ if [ "$TRACE_ENABLED" = "true" ]; then
 fi
 
 
-# all ts for mimalloc is something
-if [ "$MIMALLOC_ENABLED" = "true" ]; then
-    printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}Enabling mimalloc!\n"
-    export LD_PRELOAD="/usr/local/lib/libmimalloc.so"
-fi
+# (mimalloc is now handled in the MALLOC_IMPL case block above)
 
-# tcmalloc (down from skullian's)
-
-if [ "$TCMALLOC_ENABLED" = "true" ]; then
-    TCMALLOC_LIB=$(ldconfig -p 2>/dev/null | awk '/libtcmalloc_minimal\.so/{print $NF; exit}')
-    if [ -z "$TCMALLOC_LIB" ]; then
-        printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}${LIGHT_RED}ERROR: tcmalloc requested but library was not found!${RESET_COLOR}\n"
-        exit 1
-    fi
-
-    printf "${CYAN}container@memory-allocator~ ${RESET_COLOR}Enabling tcmalloc!\n"
-    export LD_PRELOAD="$TCMALLOC_LIB"
-fi
+# (tcmalloc is now handled in the MALLOC_IMPL case block above)
 
 # malloc i've found randomly on the internet
 
