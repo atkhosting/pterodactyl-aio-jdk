@@ -70,6 +70,60 @@ fi
 
 export PATH="${JAVA_HOME}/bin:${PATH}"
 
+# Ensure system CA certificates are updated and synchronized across all JDK vendors
+update_java_cacerts() {
+    update-ca-certificates >/dev/null 2>&1 || true
+
+    JAVA_CACERTS_FILE="/etc/ssl/certs/java/cacerts"
+    mkdir -p /etc/ssl/certs/java
+
+    KEYTOOL=""
+    for k in "${JAVA_HOME}/bin/keytool" /opt/java/*/bin/keytool keytool; do
+        if command -v "$k" >/dev/null 2>&1 || [ -x "$k" ]; then
+            KEYTOOL="$k"
+            break
+        fi
+    done
+
+    if [ -f /etc/ssl/certs/ca-certificates.crt ] && [ -n "$KEYTOOL" ]; then
+        if [ ! -s "$JAVA_CACERTS_FILE" ]; then
+            TMP_KS="/tmp/cacerts.tmp"
+            rm -f "$TMP_KS"
+            CERT_NUM=0
+            while IFS= read -r -d '' CERT_BLOCK; do
+                ALIAS="os-ca-${CERT_NUM}"
+                printf '%s\n' "$CERT_BLOCK" | \
+                    "$KEYTOOL" -importcert -noprompt -trustcacerts \
+                    -keystore "$TMP_KS" -storepass changeit \
+                    -alias "$ALIAS" >/dev/null 2>&1 || true
+                CERT_NUM=$((CERT_NUM + 1))
+            done < <(awk '/-----BEGIN CERTIFICATE-----/{cert=""} {cert=cert"\n"$0} /-----END CERTIFICATE-----/{printf "%s\0", cert}' /etc/ssl/certs/ca-certificates.crt)
+            if [ -f "$TMP_KS" ]; then
+                mv "$TMP_KS" "$JAVA_CACERTS_FILE"
+                chmod 644 "$JAVA_CACERTS_FILE"
+            fi
+        fi
+    fi
+
+    for JDK_DIR in /opt/java/*; do
+        if [ -d "$JDK_DIR" ]; then
+            for sub in "lib/security" "jre/lib/security" "conf/security"; do
+                if [ -d "$JDK_DIR/$sub" ]; then
+                    CACERTS_TARGET="$JDK_DIR/$sub/cacerts"
+                    if [ ! -s "$CACERTS_TARGET" ]; then
+                        rm -f "$CACERTS_TARGET"
+                        if [ -f "$JAVA_CACERTS_FILE" ]; then
+                            cp "$JAVA_CACERTS_FILE" "$CACERTS_TARGET" 2>/dev/null || ln -sf "$JAVA_CACERTS_FILE" "$CACERTS_TARGET"
+                        fi
+                    fi
+                fi
+            done
+        fi
+    done
+}
+
+update_java_cacerts
+
 # Switch to the container's working directory
 cd /home/container || exit 1
 

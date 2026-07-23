@@ -113,7 +113,45 @@ RUN         apt-get update -y \
             && rm -rf /var/lib/apt/lists/* \
             && useradd -m -d /home/container container
 
+# Copy all pre-stripped JDKs in a single layer
 COPY --from=jdk-builder /opt/java /opt/java
+
+# --- Sync OS CA certificates into every JDK's truststore ---
+RUN update-ca-certificates && \
+    mkdir -p /etc/ssl/certs/java && \
+    KEYTOOL=$(find /opt/java -name "keytool" -type f 2>/dev/null | head -n1) && \
+    if [ -n "$KEYTOOL" ] && [ -f /etc/ssl/certs/ca-certificates.crt ]; then \
+        TMP_KS="/tmp/cacerts.tmp" && \
+        rm -f "$TMP_KS" && \
+        CERT_NUM=0 && \
+        while IFS= read -r -d '' CERT_BLOCK; do \
+            ALIAS="os-ca-${CERT_NUM}" && \
+            printf '%s\n' "$CERT_BLOCK" | \
+            "$KEYTOOL" -importcert -noprompt -trustcacerts \
+                -keystore "$TMP_KS" -storepass changeit \
+                -alias "$ALIAS" >/dev/null 2>&1 || true && \
+            CERT_NUM=$((CERT_NUM + 1)); \
+        done < <(awk '/-----BEGIN CERTIFICATE-----/{cert=""} {cert=cert"\n"$0} /-----END CERTIFICATE-----/{printf "%s\0", cert}' /etc/ssl/certs/ca-certificates.crt) && \
+        if [ -f "$TMP_KS" ]; then \
+            mv "$TMP_KS" /etc/ssl/certs/java/cacerts && \
+            chmod 644 /etc/ssl/certs/java/cacerts; \
+        fi; \
+    fi && \
+    for JDK_DIR in /opt/java/*; do \
+        if [ -d "$JDK_DIR" ]; then \
+            for sub in "lib/security" "jre/lib/security" "conf/security"; do \
+                if [ -d "$JDK_DIR/$sub" ]; then \
+                    CACERTS_TARGET="$JDK_DIR/$sub/cacerts" && \
+                    if [ ! -s "$CACERTS_TARGET" ]; then \
+                        rm -f "$CACERTS_TARGET" && \
+                        if [ -f /etc/ssl/certs/java/cacerts ]; then \
+                            cp /etc/ssl/certs/java/cacerts "$CACERTS_TARGET" 2>/dev/null || ln -sf /etc/ssl/certs/java/cacerts "$CACERTS_TARGET"; \
+                        fi; \
+                    fi; \
+                fi; \
+            done; \
+        fi; \
+    done
 COPY --from=malloc-builder /usr/local/lib/libjemalloc.so /usr/local/lib/libjemalloc.so
 COPY --from=malloc-builder /usr/local/lib/libmimalloc.so /usr/local/lib/libmimalloc.so
 COPY --from=malloc-builder /usr/local/bin/jeprof /usr/local/bin/jeprof
