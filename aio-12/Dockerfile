@@ -87,7 +87,7 @@ RUN set -eux && \
     done && \
     \
     find /opt/java -type f \( -name "src.zip" -o -name "*.debuginfo" -o -name "*.diz" -o -name "*.map" \) -delete 2>/dev/null || true && \
-    REF_CACERTS=$(find /opt/java -name "cacerts" -type f ! -type l 2>/dev/null | head -n1) && if [ -n "$REF_CACERTS" ]; then for jdk_dir in /opt/java/*; do for target in "$jdk_dir/lib/security/cacerts" "$jdk_dir/jre/lib/security/cacerts" "$jdk_dir/conf/security/cacerts"; do if [ -L "$target" ] || [ ! -s "$target" ]; then rm -f "$target" && cp "$REF_CACERTS" "$target"; fi; done; done; fi && \
+    REF_CACERTS=$(find /opt/java -name "cacerts" -type f ! -type l 2>/dev/null | head -n1) && if [ -n "$REF_CACERTS" ]; then for jdk_dir in /opt/java/*; do for sub in "lib/security" "jre/lib/security" "conf/security"; do if [ -d "$jdk_dir/$sub" ]; then target="$jdk_dir/$sub/cacerts"; if [ -L "$target" ] || [ ! -s "$target" ]; then rm -f "$target" && cp "$REF_CACERTS" "$target" || true; fi; fi; done; done; fi && \
     echo "=== Per-JDK sizes ===" && du -sh /opt/java/* && \
     echo "=== Total ===" && du -sh /opt/java
 

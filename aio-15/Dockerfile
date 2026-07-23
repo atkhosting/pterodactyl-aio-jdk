@@ -30,7 +30,7 @@ RUN set -eux && \
     for jdk in zulu liberica corretto; do if [ ! -f "/opt/java/$jdk/bin/java" ]; then echo "ERROR: /opt/java/$jdk/bin/java not found!" && exit 1; fi; echo "OK /opt/java/$jdk/bin/java"; done && \
     for dir in man demo sample legal jmods include; do find /opt/java -type d -name "$dir" -exec rm -rf {} + 2>/dev/null || true; done && \
     find /opt/java -type f \( -name "src.zip" -o -name "*.debuginfo" -o -name "*.diz" -o -name "*.map" \) -delete 2>/dev/null || true && \
-    REF_CACERTS=$(find /opt/java -name "cacerts" -type f ! -type l 2>/dev/null | head -n1) && if [ -n "$REF_CACERTS" ]; then for jdk_dir in /opt/java/*; do for target in "$jdk_dir/lib/security/cacerts" "$jdk_dir/jre/lib/security/cacerts" "$jdk_dir/conf/security/cacerts"; do if [ -L "$target" ] || [ ! -s "$target" ]; then rm -f "$target" && cp "$REF_CACERTS" "$target"; fi; done; done; fi && \
+    REF_CACERTS=$(find /opt/java -name "cacerts" -type f ! -type l 2>/dev/null | head -n1) && if [ -n "$REF_CACERTS" ]; then for jdk_dir in /opt/java/*; do for sub in "lib/security" "jre/lib/security" "conf/security"; do if [ -d "$jdk_dir/$sub" ]; then target="$jdk_dir/$sub/cacerts"; if [ -L "$target" ] || [ ! -s "$target" ]; then rm -f "$target" && cp "$REF_CACERTS" "$target" || true; fi; fi; done; done; fi && \
     echo "=== Per-JDK sizes ===" && du -sh /opt/java/* && echo "=== Total ===" && du -sh /opt/java
 
 FROM debian:stable-slim
