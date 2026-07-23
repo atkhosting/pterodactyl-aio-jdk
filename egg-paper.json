@@ -1,12 +1,12 @@
 {
-    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO but who cares",
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
     "meta": {
         "version": "PTDL_v2",
         "update_url": null
     },
     "exported_at": "2026-01-05T18:02:31+00:00",
-    "name": "Paper with AIO JDK Docker Images",
-    "author": "agroup168@proton.me",
+    "name": "Paper",
+    "author": "someone@atkhosting",
     "description": "High performance Spigot fork that aims to fix gameplay and mechanics inconsistencies. With you-know-what additions",
     "features": [
         "eula",
@@ -14,20 +14,12 @@
         "pid_limit"
     ],
     "docker_images": {
-        "Java 7": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-7",
         "Java 8": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-8",
-        "Java 9": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-9",
-        "Java 10": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-10",
         "Java 11": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-11",
-        "Java 12": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-12",
-        "Java 13": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-13",
-        "Java 14": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-14",
-        "Java 15": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-15",
-        "Java 16": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-16",
         "Java 17": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-17",
-        "Java 18": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-18",
-        "Java 19": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-19",
         "Java 21": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-21",
+        "Java 22": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-22",
+        "Java 23": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-23",
         "Java 24": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-24",
         "Java 25": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-25",
         "Java 26": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-26"
