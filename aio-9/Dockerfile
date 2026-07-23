@@ -81,7 +81,7 @@ RUN set -eux && \
     done && \
     \
     find /opt/java -type f \( -name "src.zip" -o -name "*.debuginfo" -o -name "*.diz" -o -name "*.map" \) -delete 2>/dev/null || true && \
-    \
+    for jdk in /opt/java/*/lib/security/cacerts /opt/java/*/jre/lib/security/cacerts /opt/java/*/conf/security/cacerts; do if [ -L "$jdk" ] && [ ! -e "$jdk" ]; then echo "WARN: removing dangling cacerts symlink: $jdk"; rm -f "$jdk"; fi; done && \
     echo "=== Per-JDK sizes ===" && du -sh /opt/java/* && \
     echo "=== Total ===" && du -sh /opt/java
 
@@ -134,7 +134,7 @@ RUN update-ca-certificates && \
             for sub in "lib/security" "jre/lib/security" "conf/security"; do \
                 if [ -d "$JDK_DIR/$sub" ]; then \
                     CACERTS_TARGET="$JDK_DIR/$sub/cacerts" && \
-                    if [ ! -s "$CACERTS_TARGET" ]; then \
+                    if [ ! -s "$CACERTS_TARGET" ] || [ -L "$CACERTS_TARGET" ]; then \
                         rm -f "$CACERTS_TARGET" && \
                         if [ -f /etc/ssl/certs/java/cacerts ]; then \
                             cp /etc/ssl/certs/java/cacerts "$CACERTS_TARGET" 2>/dev/null || ln -sf /etc/ssl/certs/java/cacerts "$CACERTS_TARGET"; \

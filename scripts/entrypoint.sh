@@ -101,7 +101,7 @@ update_java_cacerts() {
             for sub in "lib/security" "jre/lib/security" "conf/security"; do
                 if [ -d "$JDK_DIR/$sub" ]; then
                     CACERTS_TARGET="$JDK_DIR/$sub/cacerts"
-                    if [ ! -s "$CACERTS_TARGET" ]; then
+                    if [ ! -s "$CACERTS_TARGET" ] || [ -L "$CACERTS_TARGET" ]; then
                         rm -f "$CACERTS_TARGET"
                         if [ -f "$JAVA_CACERTS_FILE" ]; then
                             cp "$JAVA_CACERTS_FILE" "$CACERTS_TARGET" 2>/dev/null || ln -sf "$JAVA_CACERTS_FILE" "$CACERTS_TARGET"
