@@ -5,27 +5,27 @@
         "update_url": null
     },
     "exported_at": "2026-01-05T18:02:31+00:00",
-    "name": "Paper",
-    "author": "someone@atkhosting",
-    "description": "High performance Spigot fork that aims to fix gameplay and mechanics inconsistencies. With you-know-what additions",
+    "name": "PaperMC với JDK đã được cải thiện dành riêng cho ATK Hosting",
+    "author": "someone@atkhosting and Aretzera An",
+    "description": "PaperMC với JDK đã được cải thiện dành riêng cho ATK Hosting. Bản phân phối này bao gồm các bản dựng JDK được tối ưu hóa cho hiệu suất và khả năng tương thích tốt hơn với các máy chủ Minecraft. Nó cung cấp nhiều tùy chọn JDK, cho phép bạn chọn phiên bản và nhà cung cấp phù hợp nhất với nhu cầu của mình. Ngoài ra, nó cũng hỗ trợ các trình phân bổ bộ nhớ khác nhau để tối ưu hóa hiệu suất của máy chủ.",
     "features": [
         "eula",
         "java_version",
         "pid_limit"
     ],
     "docker_images": {
-        "Java 8": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-8",
-        "Java 11": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-11",
-        "Java 17": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-17",
-        "Java 21": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-21",
-        "Java 22": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-22",
-        "Java 23": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-23",
-        "Java 24": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-24",
-        "Java 25": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-25",
-        "Java 26": "ghcr.io\/alexan75541\/pterodactyl-aio-jdk:aio-26"
+        "Java 8": "ghcr.io\/atkhosting\/pterodactyl-aio-jdk:aio-8",
+        "Java 11": "ghcr.io\/atkhosting\/pterodactyl-aio-jdk:aio-11",
+        "Java 17": "ghcr.io\/atkhosting\/pterodactyl-aio-jdk:aio-17",
+        "Java 21": "ghcr.io\/atkhosting\/pterodactyl-aio-jdk:aio-21",
+        "Java 22": "ghcr.io\/atkhosting\/pterodactyl-aio-jdk:aio-22",
+        "Java 23": "ghcr.io\/atkhosting\/pterodactyl-aio-jdk:aio-23",
+        "Java 24": "ghcr.io\/atkhosting\/pterodactyl-aio-jdk:aio-24",
+        "Java 25": "ghcr.io\/atkhosting\/pterodactyl-aio-jdk:aio-25",
+        "Java 26": "ghcr.io\/atkhosting\/pterodactyl-aio-jdk:aio-26"
     },
     "file_denylist": [],
-    "startup": "java -Xms128M -Xmx{{SERVER_MEMORY}}M {{FLAGS}} -Dterminal.jline=false -Dterminal.ansi=true {{MALLOC_OPTS}} -jar {{SERVER_JARFILE}}",
+    "startup": "java -Xms128M -Xmx{{SERVER_MEMORY}}M {{FLAGS}} -Dterminal.jline=false -Dterminal.ansi=true -jar {{SERVER_JARFILE}}",
     "config": {
         "files": "{\r\n    \"server.properties\": {\r\n        \"parser\": \"properties\",\r\n        \"find\": {\r\n            \"server-ip\": \"0.0.0.0\",\r\n            \"server-port\": \"{{server.build.default.port}}\",\r\n            \"query.port\": \"{{server.build.default.port}}\"\r\n        }\r\n    }\r\n}",
         "startup": "{\r\n    \"done\": \")! For help, type \"\r\n}",
