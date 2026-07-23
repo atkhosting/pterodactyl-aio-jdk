@@ -7,6 +7,9 @@ jobs:
   pterodactyl-aio-jdk:
     name: "pterodactyl-aio-jdk:${{ matrix.tag }}"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
