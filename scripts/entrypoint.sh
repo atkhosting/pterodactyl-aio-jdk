@@ -75,7 +75,7 @@ update_java_cacerts() {
     update-ca-certificates >/dev/null 2>&1 || true
 
     JAVA_CACERTS_FILE="/etc/ssl/certs/java/cacerts"
-    mkdir -p /etc/ssl/certs/java
+    mkdir -p /etc/ssl/certs/java /tmp/certs
 
     KEYTOOL=""
     for k in "${JAVA_HOME}/bin/keytool" /opt/java/*/bin/keytool keytool; do
@@ -89,15 +89,15 @@ update_java_cacerts() {
         if [ ! -s "$JAVA_CACERTS_FILE" ]; then
             TMP_KS="/tmp/cacerts.tmp"
             rm -f "$TMP_KS"
-            CERT_NUM=0
-            while IFS= read -r -d '' CERT_BLOCK; do
-                ALIAS="os-ca-${CERT_NUM}"
-                printf '%s\n' "$CERT_BLOCK" | \
-                    "$KEYTOOL" -importcert -noprompt -trustcacerts \
+            awk '/-----BEGIN CERTIFICATE-----/{n++} {if(n>0) print > ("/tmp/certs/cert" n ".crt")}' /etc/ssl/certs/ca-certificates.crt
+            for f in /tmp/certs/*.crt; do
+                [ -f "$f" ] || continue
+                "$KEYTOOL" -importcert -noprompt -trustcacerts \
                     -keystore "$TMP_KS" -storepass changeit \
-                    -alias "$ALIAS" >/dev/null 2>&1 || true
-                CERT_NUM=$((CERT_NUM + 1))
-            done < <(awk '/-----BEGIN CERTIFICATE-----/{cert=""} {cert=cert"\n"$0} /-----END CERTIFICATE-----/{printf "%s\0", cert}' /etc/ssl/certs/ca-certificates.crt)
+                    -alias "os-ca-$(basename "$f")" \
+                    -file "$f" >/dev/null 2>&1 || true
+            done
+            rm -rf /tmp/certs
             if [ -f "$TMP_KS" ]; then
                 mv "$TMP_KS" "$JAVA_CACERTS_FILE"
                 chmod 644 "$JAVA_CACERTS_FILE"

@@ -146,20 +146,20 @@ COPY --from=jdk-builder /opt/java /opt/java
 
 # --- Sync OS CA certificates into every JDK's truststore ---
 RUN update-ca-certificates && \
-    mkdir -p /etc/ssl/certs/java && \
+    mkdir -p /etc/ssl/certs/java /tmp/certs && \
     KEYTOOL=$(find /opt/java -name "keytool" -type f 2>/dev/null | head -n1) && \
     if [ -n "$KEYTOOL" ] && [ -f /etc/ssl/certs/ca-certificates.crt ]; then \
         TMP_KS="/tmp/cacerts.tmp" && \
         rm -f "$TMP_KS" && \
-        CERT_NUM=0 && \
-        while IFS= read -r -d '' CERT_BLOCK; do \
-            ALIAS="os-ca-${CERT_NUM}" && \
-            printf '%s\n' "$CERT_BLOCK" | \
+        awk '/-----BEGIN CERTIFICATE-----/{n++} {if(n>0) print > ("/tmp/certs/cert" n ".crt")}' /etc/ssl/certs/ca-certificates.crt && \
+        for f in /tmp/certs/*.crt; do \
+            [ -f "$f" ] || continue; \
             "$KEYTOOL" -importcert -noprompt -trustcacerts \
                 -keystore "$TMP_KS" -storepass changeit \
-                -alias "$ALIAS" >/dev/null 2>&1 || true && \
-            CERT_NUM=$((CERT_NUM + 1)); \
-        done < <(awk '/-----BEGIN CERTIFICATE-----/{cert=""} {cert=cert"\n"$0} /-----END CERTIFICATE-----/{printf "%s\0", cert}' /etc/ssl/certs/ca-certificates.crt) && \
+                -alias "os-ca-$(basename "$f")" \
+                -file "$f" >/dev/null 2>&1 || true; \
+        done && \
+        rm -rf /tmp/certs && \
         if [ -f "$TMP_KS" ]; then \
             mv "$TMP_KS" /etc/ssl/certs/java/cacerts && \
             chmod 644 /etc/ssl/certs/java/cacerts; \
