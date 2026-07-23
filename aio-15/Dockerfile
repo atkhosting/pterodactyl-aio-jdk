@@ -30,6 +30,7 @@ RUN set -eux && \
     for jdk in zulu liberica corretto; do if [ ! -f "/opt/java/$jdk/bin/java" ]; then echo "ERROR: /opt/java/$jdk/bin/java not found!" && exit 1; fi; echo "OK /opt/java/$jdk/bin/java"; done && \
     for dir in man demo sample legal jmods include; do find /opt/java -type d -name "$dir" -exec rm -rf {} + 2>/dev/null || true; done && \
     find /opt/java -type f \( -name "src.zip" -o -name "*.debuginfo" -o -name "*.diz" -o -name "*.map" \) -delete 2>/dev/null || true && \
+    for jdk in /opt/java/*/lib/security/cacerts /opt/java/*/jre/lib/security/cacerts /opt/java/*/conf/security/cacerts; do if [ -L "$jdk" ] && [ ! -e "$jdk" ]; then echo "WARN: removing dangling cacerts symlink: $jdk"; rm -f "$jdk"; fi; done && \
     echo "=== Per-JDK sizes ===" && du -sh /opt/java/* && echo "=== Total ===" && du -sh /opt/java
 
 FROM debian:stable-slim
@@ -68,7 +69,7 @@ RUN update-ca-certificates && \
             for sub in "lib/security" "jre/lib/security" "conf/security"; do \
                 if [ -d "$JDK_DIR/$sub" ]; then \
                     CACERTS_TARGET="$JDK_DIR/$sub/cacerts" && \
-                    if [ ! -s "$CACERTS_TARGET" ]; then \
+                    if [ ! -s "$CACERTS_TARGET" ] || [ -L "$CACERTS_TARGET" ]; then \
                         rm -f "$CACERTS_TARGET" && \
                         if [ -f /etc/ssl/certs/java/cacerts ]; then \
                             cp /etc/ssl/certs/java/cacerts "$CACERTS_TARGET" 2>/dev/null || ln -sf /etc/ssl/certs/java/cacerts "$CACERTS_TARGET"; \
