@@ -180,7 +180,7 @@ mkdir -p dumps
 if [ "$DUMPS_ENABLED" = "true" ]; then
     if [ "$JEMALLOC_ENABLED" != "true" ]; then
         printf "${CYAN}container@atkhosting-memory-allocator~ ${RESET_COLOR}${LIGHT_RED}ERROR: -Ddump=true requires jemalloc.${RESET_COLOR}\n"
-        printf "${CYAN}container@atkhosting-memory-allocator~ ${RESET_COLOR}Select jemalloc with MALLOC_IMPL or remove the dump flag.\n"
+        printf "${CYAN}container@atkhosting-memory-allocator~ ${RESET_COLOR}Please change the Malloc Implementation to jemalloc in the Startup section of the panel or remove the dump flag.\n"
         exit 1
     fi
 
