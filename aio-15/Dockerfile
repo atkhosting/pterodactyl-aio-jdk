@@ -16,7 +16,7 @@ FROM azul/zulu-openjdk:15 AS zulu
 FROM bellsoft/liberica-openjdk-debian:15 AS liberica
 FROM amazoncorretto:15 AS corretto
 
-FROM eclipse-temurin:15-jdk AS cacerts-provider
+FROM adoptopenjdk/openjdk15:debian-slim AS cacerts-provider
 FROM debian:stable-slim AS jdk-builder
 
 RUN mkdir -p /opt/java
