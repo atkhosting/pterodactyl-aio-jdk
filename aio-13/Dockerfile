@@ -51,67 +51,6 @@ RUN set -eux && \
     done && \
     for dir in man demo sample legal jmods include; do find /opt/java -type d -name "$dir" -exec rm -rf {} + 2>/dev/null || true; done && \
     find /opt/java -type f \( -name "src.zip" -o -name "*.debuginfo" -o -name "*.diz" -o -name "*.map" \) -delete 2>/dev/null || true && \
-    for jdk in /opt/java/*/lib/security/cacerts /opt/java/*/jre/lib/security/cacerts /opt/java/*/conf/security/cacerts; do if [ -L "$jdk" ] && [ ! -e "$jdk" ]; then echo "WARN: removing dangling cacerts symlink: $jdk"; rm -f "$jdk"; fi; done && \
-    echo "=== Per-JDK sizes ===" && du -sh /opt/java/* && echo "=== Total ===" && du -sh /opt/java
-
-FROM debian:stable-slim
-
-ARG TARGETARCH
-
-LABEL       author="Aretzera" maintainer="agroup168@proton.me"
-LABEL org.opencontainers.image.description="Java 13 Multi-vendor Image"
-
-ENV DEBIAN_FRONTEND=noninteractive
-ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
-
-RUN apt-get update -y \
-    && apt-get install -y --no-install-recommends curl ca-certificates openssl git tar sqlite3 fontconfig libfreetype6 libstdc++6 lsof build-essential tzdata iproute2 locales libnuma1 numactl graphviz perl procps google-perftools \
-    && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
-    && locale-gen en_US.UTF-8 \
-    && update-locale LANG=en_US.UTF-8 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && useradd -m -d /home/container container
-
-# Copy all pre-stripped JDKs in a single layer
-COPY --from=jdk-builder /opt/java /opt/java
-
-# --- Sync OS CA certificates into every JDK's truststore ---
-RUN update-ca-certificates && \
-    mkdir -p /etc/ssl/certs/java /tmp/certs && \
-    KEYTOOL=$(find /opt/java -name "keytool" -type f 2>/dev/null | head -n1) && \
-    if [ -n "$KEYTOOL" ] && [ -f /etc/ssl/certs/ca-certificates.crt ]; then \
-        TMP_KS="/tmp/cacerts.tmp" && \
-        rm -f "$TMP_KS" && \
-        awk '/-----BEGIN CERTIFICATE-----/{n++} {if(n>0) print > ("/tmp/certs/cert" n ".crt")}' /etc/ssl/certs/ca-certificates.crt && \
-        for f in /tmp/certs/*.crt; do \
-            [ -f "$f" ] || continue; \
-            "$KEYTOOL" -importcert -noprompt -trustcacerts \
-                -keystore "$TMP_KS" -storepass changeit \
-                -alias "os-ca-$(basename "$f")" \
-                -file "$f" >/dev/null 2>&1 || true; \
-        done && \
-        rm -rf /tmp/certs && \
-        if [ -f "$TMP_KS" ]; then \
-            mv "$TMP_KS" /etc/ssl/certs/java/cacerts && \
-            chmod 644 /etc/ssl/certs/java/cacerts; \
-        fi; \
-    fi && \
-    for JDK_DIR in /opt/java/*; do \
-        if [ -d "$JDK_DIR" ]; then \
-            for sub in "lib/security" "jre/lib/security" "conf/security"; do \
-                if [ -d "$JDK_DIR/$sub" ]; then \
-                    CACERTS_TARGET="$JDK_DIR/$sub/cacerts" && \
-                    if [ ! -s "$CACERTS_TARGET" ] || [ -L "$CACERTS_TARGET" ]; then \
-                        rm -f "$CACERTS_TARGET" && \
-                        if [ -f /etc/ssl/certs/java/cacerts ]; then \
-                            cp /etc/ssl/certs/java/cacerts "$CACERTS_TARGET" 2>/dev/null || ln -sf /etc/ssl/certs/java/cacerts "$CACERTS_TARGET"; \
-                        fi; \
-                    fi; \
-                fi; \
-            done; \
-        fi; \
-    done
 COPY --from=malloc-builder /usr/local/lib/libjemalloc.so /usr/local/lib/libjemalloc.so
 COPY --from=malloc-builder /usr/local/lib/libmimalloc.so /usr/local/lib/libmimalloc.so
 COPY --from=malloc-builder /usr/local/bin/jeprof /usr/local/bin/jeprof
