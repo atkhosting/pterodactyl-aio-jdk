@@ -106,13 +106,23 @@ RUN set -eux && \
     # Remove non-essential files
     find /opt/java -type f \( -name "src.zip" -o -name "*.debuginfo" -o -name "*.diz" -o -name "*.map" \) -delete 2>/dev/null || true && \
     \
-    # Resolve dangling cacerts symlinks (e.g., Corretto points to /etc/pki/java/cacerts which doesn't exist in Debian)
-    for jdk in /opt/java/*/lib/security/cacerts /opt/java/*/jre/lib/security/cacerts /opt/java/*/conf/security/cacerts; do \
-        if [ -L "$jdk" ] && [ ! -e "$jdk" ]; then \
-            echo "WARN: removing dangling cacerts symlink: $jdk"; \
-            rm -f "$jdk"; \
-        fi; \
-    done && \
+    # Fix any JDK with broken/symlinked cacerts (e.g., Corretto symlink to /etc/pki/java/cacerts)
+    # by replacing it with a valid default cacerts from another JDK (e.g., Temurin or Zulu)
+    REF_CACERTS=$(find /opt/java -name "cacerts" -type f ! -type l 2>/dev/null | head -n1) && \
+    if [ -n "$REF_CACERTS" ]; then \
+        for jdk_dir in /opt/java/*; do \
+            for sub in "lib/security" "jre/lib/security" "conf/security"; do \
+                if [ -d "$jdk_dir/$sub" ]; then \
+                    target="$jdk_dir/$sub/cacerts"; \
+                    if [ -L "$target" ] || [ ! -s "$target" ]; then \
+                        echo "Fixing cacerts for $jdk_dir -> copying from $REF_CACERTS"; \
+                        rm -f "$target"; \
+                        cp "$REF_CACERTS" "$target" || true; \
+                    fi; \
+                fi; \
+            done; \
+        done; \
+    fi && \
     \
     # Log final sizes
     echo "=== Per-JDK sizes ===" && du -sh /opt/java/* && \
@@ -168,9 +178,8 @@ RUN update-ca-certificates && \
                 if [ -d "$JDK_DIR/$sub" ]; then \
                     CACERTS_TARGET="$JDK_DIR/$sub/cacerts" && \
                     if [ ! -s "$CACERTS_TARGET" ] || [ -L "$CACERTS_TARGET" ]; then \
-                        rm -f "$CACERTS_TARGET" && \
-                        if [ -f /etc/ssl/certs/java/cacerts ]; then \
-                            cp /etc/ssl/certs/java/cacerts "$CACERTS_TARGET" 2>/dev/null || ln -sf /etc/ssl/certs/java/cacerts "$CACERTS_TARGET"; \
+                        if [ -s /etc/ssl/certs/java/cacerts ]; then \
+                            rm -f "$CACERTS_TARGET" && cp /etc/ssl/certs/java/cacerts "$CACERTS_TARGET" 2>/dev/null || true; \
                         fi; \
                     fi; \
                 fi; \

@@ -88,9 +88,9 @@ update_java_cacerts() {
                 if [ -d "$JDK_DIR/$sub" ]; then
                     CACERTS_TARGET="$JDK_DIR/$sub/cacerts"
                     if [ ! -s "$CACERTS_TARGET" ] || [ -L "$CACERTS_TARGET" ]; then
-                        rm -f "$CACERTS_TARGET"
-                        if [ -f "$JAVA_CACERTS_FILE" ]; then
-                            cp "$JAVA_CACERTS_FILE" "$CACERTS_TARGET" 2>/dev/null || ln -sf "$JAVA_CACERTS_FILE" "$CACERTS_TARGET"
+                        if [ -s "$JAVA_CACERTS_FILE" ]; then
+                            rm -f "$CACERTS_TARGET" 2>/dev/null || true
+                            cp "$JAVA_CACERTS_FILE" "$CACERTS_TARGET" 2>/dev/null || true
                         fi
                     fi
                 fi
