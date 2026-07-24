@@ -81,23 +81,6 @@ RUN set -eux && \
     done && \
     \
     find /opt/java -type f \( -name "src.zip" -o -name "*.debuginfo" -o -name "*.diz" -o -name "*.map" \) -delete 2>/dev/null || true && \
-    # Fix broken/symlinked cacerts (e.g. Corretto symlink to /etc/pki/java/cacerts)
-    # by copying a static valid cacerts found from another JDK in /opt/java
-    REF_CACERTS=$(find /opt/java -name "cacerts" -type f ! -type l 2>/dev/null | head -n1) && \
-    if [ -n "$REF_CACERTS" ]; then \
-        for jdk_dir in /opt/java/*; do \
-            for sub in "lib/security" "jre/lib/security" "conf/security"; do \
-                if [ -d "$jdk_dir/$sub" ]; then \
-                    target="$jdk_dir/$sub/cacerts"; \
-                    if [ -L "$target" ] || [ ! -s "$target" ]; then \
-                        echo "Fixing cacerts: $target -> copying from $REF_CACERTS"; \
-                        rm -f "$target"; \
-                        cp "$REF_CACERTS" "$target"; \
-                    fi; \
-                fi; \
-            done; \
-        done; \
-    fi && \
     echo "=== Per-JDK sizes ===" && du -sh /opt/java/* && \
     echo "=== Total ===" && du -sh /opt/java
 
@@ -124,24 +107,6 @@ RUN         apt-get update -y \
 # Copy all pre-stripped JDKs in a single layer
 COPY --from=jdk-builder /opt/java /opt/java
 
-# --- Sync OS CA certificates into every JDK's truststore ---
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates-java && \
-    rm -rf /var/lib/apt/lists/* && \
-    update-ca-certificates && \
-    mkdir -p /etc/pki/java && \
-    ln -sf /etc/ssl/certs/java/cacerts /etc/pki/java/cacerts && \
-    for JDK_DIR in /opt/java/*; do \
-        if [ -d "$JDK_DIR" ]; then \
-            for sub in "lib/security" "jre/lib/security" "conf/security"; do \
-                if [ -d "$JDK_DIR/$sub" ]; then \
-                    rm -f "$JDK_DIR/$sub/cacerts" 2>/dev/null || true; \
-                    cp /etc/ssl/certs/java/cacerts "$JDK_DIR/$sub/cacerts"; \
-                    chmod 644 "$JDK_DIR/$sub/cacerts"; \
-                fi; \
-            done; \
-        fi; \
-    done
 COPY --from=malloc-builder /usr/local/lib/libjemalloc.so /usr/local/lib/libjemalloc.so
 COPY --from=malloc-builder /usr/local/lib/libmimalloc.so /usr/local/lib/libmimalloc.so
 COPY --from=malloc-builder /usr/local/bin/jeprof /usr/local/bin/jeprof
