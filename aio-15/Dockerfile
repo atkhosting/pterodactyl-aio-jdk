@@ -30,21 +30,23 @@ RUN set -eux && \
     for jdk in zulu liberica corretto; do if [ ! -f "/opt/java/$jdk/bin/java" ]; then echo "ERROR: /opt/java/$jdk/bin/java not found!" && exit 1; fi; echo "OK /opt/java/$jdk/bin/java"; done && \
     for dir in man demo sample legal jmods include; do find /opt/java -type d -name "$dir" -exec rm -rf {} + 2>/dev/null || true; done && \
     find /opt/java -type f \( -name "src.zip" -o -name "*.debuginfo" -o -name "*.diz" -o -name "*.map" \) -delete 2>/dev/null || true && \
-    # Fix broken/symlinked cacerts by copying Temurin's known-good static cacerts
-    REF_CACERTS="/opt/java/temurin/lib/security/cacerts" && \
-    for jdk_dir in /opt/java/*; do \
-        [ "$jdk_dir" = "/opt/java/temurin" ] && continue; \
-        for sub in "lib/security" "jre/lib/security" "conf/security"; do \
-            if [ -d "$jdk_dir/$sub" ]; then \
-                target="$jdk_dir/$sub/cacerts"; \
-                if [ -L "$target" ] || [ ! -s "$target" ]; then \
-                    echo "Fixing cacerts: $target -> copying from Temurin"; \
-                    rm -f "$target"; \
-                    cp "$REF_CACERTS" "$target"; \
+    # Fix broken/symlinked cacerts (e.g. Corretto symlink to /etc/pki/java/cacerts)
+    # by copying a static valid cacerts found from another JDK in /opt/java
+    REF_CACERTS=$(find /opt/java -name "cacerts" -type f ! -type l 2>/dev/null | head -n1) && \
+    if [ -n "$REF_CACERTS" ]; then \
+        for jdk_dir in /opt/java/*; do \
+            for sub in "lib/security" "jre/lib/security" "conf/security"; do \
+                if [ -d "$jdk_dir/$sub" ]; then \
+                    target="$jdk_dir/$sub/cacerts"; \
+                    if [ -L "$target" ] || [ ! -s "$target" ]; then \
+                        echo "Fixing cacerts: $target -> copying from $REF_CACERTS"; \
+                        rm -f "$target"; \
+                        cp "$REF_CACERTS" "$target"; \
+                    fi; \
                 fi; \
-            fi; \
+            done; \
         done; \
-    done && \
+    fi && \
     echo "=== Per-JDK sizes ===" && du -sh /opt/java/* && echo "=== Total ===" && du -sh /opt/java
 
 FROM debian:stable-slim
