@@ -80,7 +80,21 @@ RUN set -eux && \
     done && \
     \
     find /opt/java -type f \( -name "src.zip" -o -name "*.debuginfo" -o -name "*.diz" -o -name "*.map" \) -delete 2>/dev/null || true && \
-    REF_CACERTS=$(find /opt/java -name "cacerts" -type f ! -type l 2>/dev/null | head -n1) && if [ -n "$REF_CACERTS" ]; then for jdk_dir in /opt/java/*; do for sub in "lib/security" "jre/lib/security" "conf/security"; do if [ -d "$jdk_dir/$sub" ]; then target="$jdk_dir/$sub/cacerts"; if [ -L "$target" ] || [ ! -s "$target" ]; then rm -f "$target" && cp "$REF_CACERTS" "$target" || true; fi; fi; done; done; fi && \
+    # Fix broken/symlinked cacerts by copying Temurin's known-good static cacerts
+    REF_CACERTS="/opt/java/temurin/lib/security/cacerts" && \
+    for jdk_dir in /opt/java/*; do \
+        [ "$jdk_dir" = "/opt/java/temurin" ] && continue; \
+        for sub in "lib/security" "jre/lib/security" "conf/security"; do \
+            if [ -d "$jdk_dir/$sub" ]; then \
+                target="$jdk_dir/$sub/cacerts"; \
+                if [ -L "$target" ] || [ ! -s "$target" ]; then \
+                    echo "Fixing cacerts: $target -> copying from Temurin"; \
+                    rm -f "$target"; \
+                    cp "$REF_CACERTS" "$target"; \
+                fi; \
+            fi; \
+        done; \
+    done && \
     echo "=== Per-JDK sizes ===" && du -sh /opt/java/* && \
     echo "=== Total ===" && du -sh /opt/java
 
@@ -109,37 +123,19 @@ RUN         apt-get update -y \
 COPY --from=jdk-builder /opt/java /opt/java
 
 # --- Sync OS CA certificates into every JDK's truststore ---
-RUN update-ca-certificates && \
-    mkdir -p /etc/ssl/certs/java /etc/pki/java /tmp/certs && \
-    KEYTOOL=$(find /opt/java -name "keytool" -type f 2>/dev/null | head -n1) && \
-    if [ -n "$KEYTOOL" ] && [ -f /etc/ssl/certs/ca-certificates.crt ]; then \
-        TMP_KS="/tmp/cacerts.tmp" && \
-        rm -f "$TMP_KS" && \
-        awk '/-----BEGIN CERTIFICATE-----/{n++; file="/tmp/certs/cert" n ".crt"} n>0{print > file}' /etc/ssl/certs/ca-certificates.crt && \
-        for f in /tmp/certs/*.crt; do \
-            [ -f "$f" ] || continue; \
-            "$KEYTOOL" -importcert -noprompt -trustcacerts \
-                -keystore "$TMP_KS" -storepass changeit \
-                -alias "os-ca-$(basename "$f")" \
-                -file "$f" >/dev/null 2>&1 || true; \
-        done && \
-        rm -rf /tmp/certs && \
-        if [ -f "$TMP_KS" ]; then \
-            mv "$TMP_KS" /etc/ssl/certs/java/cacerts && \
-            chmod 644 /etc/ssl/certs/java/cacerts; \
-        fi; \
-    fi && \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates-java && \
+    rm -rf /var/lib/apt/lists/* && \
+    update-ca-certificates && \
+    mkdir -p /etc/pki/java && \
     ln -sf /etc/ssl/certs/java/cacerts /etc/pki/java/cacerts && \
     for JDK_DIR in /opt/java/*; do \
         if [ -d "$JDK_DIR" ]; then \
             for sub in "lib/security" "jre/lib/security" "conf/security"; do \
                 if [ -d "$JDK_DIR/$sub" ]; then \
-                    CACERTS_TARGET="$JDK_DIR/$sub/cacerts" && \
-                    if [ -s /etc/ssl/certs/java/cacerts ]; then \
-                        rm -f "$CACERTS_TARGET" 2>/dev/null || true && \
-                        cp /etc/ssl/certs/java/cacerts "$CACERTS_TARGET" 2>/dev/null || true && \
-                        chmod 644 "$CACERTS_TARGET" 2>/dev/null || true; \
-                    fi; \
+                    rm -f "$JDK_DIR/$sub/cacerts" 2>/dev/null || true; \
+                    cp /etc/ssl/certs/java/cacerts "$JDK_DIR/$sub/cacerts"; \
+                    chmod 644 "$JDK_DIR/$sub/cacerts"; \
                 fi; \
             done; \
         fi; \
