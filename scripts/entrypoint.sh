@@ -82,23 +82,42 @@ TCMALLOC_ENABLED=false
 case "$MALLOC_IMPL" in
     jemalloc)
         JEMALLOC_ENABLED=true
-        printf "${CYAN}container@atkhosting-memory-allocator~ ${RESET_COLOR}Đã bật thành công jemalloc!\n"
-        export LD_PRELOAD="/usr/local/lib/libjemalloc.so"
+        LIB_PATH="/usr/local/lib/libjemalloc.so"
+        if [ -f "$LIB_PATH" ]; then
+            printf "${CYAN}container@atkhosting-memory-allocator~ ${RESET_COLOR}ls -lh %s\n" "$LIB_PATH"
+            ls -lh "$LIB_PATH"
+            printf "${CYAN}container@atkhosting-memory-allocator~ ${RESET_COLOR}Đã bật thành công jemalloc!\n"
+            export LD_PRELOAD="$LIB_PATH"
+        else
+            printf "${CYAN}container@atkhosting-memory-allocator~ ${RESET_COLOR}${LIGHT_RED}ERROR: jemalloc requested but library was not found at %s!${RESET_COLOR}\n" "$LIB_PATH"
+            exit 1
+        fi
         ;;
     mimalloc)
         MIMALLOC_ENABLED=true
-        printf "${CYAN}container@atkhosting-memory-allocator~ ${RESET_COLOR}Đã bật thành công mimalloc!\n"
-        export LD_PRELOAD="/usr/local/lib/libmimalloc.so"
+        LIB_PATH="/usr/local/lib/libmimalloc.so"
+        if [ -f "$LIB_PATH" ]; then
+            printf "${CYAN}container@atkhosting-memory-allocator~ ${RESET_COLOR}ls -lh %s\n" "$LIB_PATH"
+            ls -lh "$LIB_PATH"
+            printf "${CYAN}container@atkhosting-memory-allocator~ ${RESET_COLOR}Đã bật thành công mimalloc!\n"
+            export LD_PRELOAD="$LIB_PATH"
+        else
+            printf "${CYAN}container@atkhosting-memory-allocator~ ${RESET_COLOR}${LIGHT_RED}ERROR: mimalloc requested but library was not found at %s!${RESET_COLOR}\n" "$LIB_PATH"
+            exit 1
+        fi
         ;;
     tcmalloc)
         TCMALLOC_ENABLED=true
         TCMALLOC_LIB=$(ldconfig -p 2>/dev/null | awk '/libtcmalloc_minimal\.so/{print $NF; exit}')
-        if [ -z "$TCMALLOC_LIB" ]; then
+        if [ -n "$TCMALLOC_LIB" ] && [ -f "$TCMALLOC_LIB" ]; then
+            printf "${CYAN}container@atkhosting-memory-allocator~ ${RESET_COLOR}ls -lh %s\n" "$TCMALLOC_LIB"
+            ls -lh "$TCMALLOC_LIB"
+            printf "${CYAN}container@atkhosting-memory-allocator~ ${RESET_COLOR}Đã bật thành công tcmalloc!\n"
+            export LD_PRELOAD="$TCMALLOC_LIB"
+        else
             printf "${CYAN}container@atkhosting-memory-allocator~ ${RESET_COLOR}${LIGHT_RED}ERROR: tcmalloc requested but library was not found!${RESET_COLOR}\n"
             exit 1
         fi
-        printf "${CYAN}container@atkhosting-memory-allocator~ ${RESET_COLOR}Đã bật thành công tcmalloc!\n"
-        export LD_PRELOAD="$TCMALLOC_LIB"
         ;;
 esac
 
